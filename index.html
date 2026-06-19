@@ -76,9 +76,10 @@
   .row.mult:hover{border-color:rgba(255,180,84,.55)}
   .ins,.outs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .outs{justify-content:flex-start}
-  .ing{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap;font-size:13px}
+  .ing{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px}
   .ing .q{font-weight:700;color:var(--muted);font-size:11.5px;min-width:fit-content}
   .ing .n{color:var(--text)}
+  .ico{width:20px;height:20px;object-fit:contain;flex:0 0 auto;border-radius:3px}
   .out .n{color:var(--teal)}
   .out .q{color:var(--teal)}
   .plus{color:var(--muted);font-weight:700;opacity:.6;font-size:12px}
@@ -132,6 +133,7 @@
 
 <footer class="wrap">
   Source: community-datamined refiner tables (Interceptor build, cross-checked against current wiki recipe pages). <b>Recipe yields are retuned by Hello Games from time to time</b> &mdash; treat exact ratios as a strong guide and confirm anything you're scaling a farm around in your live game. Precious-metal inputs in alloy recipes are interchangeable at different efficiencies: Platinum &gt; Gold &gt; Silver &gt; Tritium. Two- and three-input recipes need a Medium or Large refiner respectively.
+  <br><br>Material icons &amp; symbols via the <b>Assistant for No Man's Sky</b> community project. No Man's Sky is a trademark of Hello Games; this is an unofficial fan reference, not affiliated with or endorsed by Hello Games.
 </footer>
 
 <script>
@@ -463,12 +465,21 @@ for(const r of DATA){
   recipes.push(r);
 }
 
+// Material icons (bundled local PNGs) + in-game periodic symbols (source: AssistantNMS / Hello Games)
+const ICON={"Activated Cadmium":"activated-cadmium.png","Activated Copper":"activated-copper.png","Activated Emeril":"activated-emeril.png","Activated Indium":"activated-indium.png","Ammonia":"ammonia.png","Aronium":"aronium.png","Atlantideum":"atlantideum.png","Cactus Flesh":"cactus-flesh.png","Cadmium":"cadmium.png","Carbon":"carbon.png","Chlorine":"chlorine.png","Chromatic Metal":"chromatic-metal.png","Cobalt":"cobalt.png","Condensed Carbon":"condensed-carbon.png","Copper":"copper.png","Crystal Sulphide":"crystal-sulphide.png","Cyto-Phosphate":"cyto-phosphate.png","Deuterium":"deuterium.png","Di-hydrogen":"di-hydrogen.png","Di-hydrogen Jelly":"di-hydrogen-jelly.png","Dioxite":"dioxite.png","Dirty Bronze":"dirty-bronze.png","Emeril":"emeril.png","Enriched Carbon":"enriched-carbon.png","Faecium":"faecium.png","Ferrite Dust":"ferrite-dust.png","Frost Crystal":"frost-crystal.png","Fungal Mould":"fungal-mould.png","Gamma Root":"gamma-root.png","Geodesite":"geodesite.png","Glass":"glass.png","Gold":"gold.png","Grantine":"grantine.png","Hadal Core":"hadal-core.png","Herox":"herox.png","Hexite":"hexite.png","Hypnotic Eye":"hypnotic-eye.png","Indium":"indium.png","Inverted Mirror":"inverted-mirror.png","Ion Battery":"ion-battery.png","Ionised Cobalt":"ionised-cobalt.png","Iridesite":"iridesite.png","Kelp Sac":"kelp-sac.png","Larval Core":"larval-core.png","Lemmium":"lemmium.png","Life Support Gel":"life-support-gel.png","Living Pearl":"living-pearl.png","Living Slime":"living-slime.png","Magnetised Ferrite":"magnetised-ferrite.png","Magno-Gold":"magno-gold.png","Marrow Bulb":"marrow-bulb.png","Mordite":"mordite.png","Nanite Cluster":"nanite-cluster.png","Nitrogen":"nitrogen.png","Nitrogen Salt":"nitrogen-salt.png","Oxygen":"oxygen.png","Paraffinium":"paraffinium.png","Phosphorus":"phosphorus.png","Platinum":"platinum.png","Pugneum":"pugneum.png","Pure Ferrite":"pure-ferrite.png","Pyrite":"pyrite.png","Radiant Shard":"radiant-shard.png","Radon":"radon.png","Rare Metal Element":"rare-metal-element.png","Residual Goop":"residual-goop.png","Runaway Mould":"runaway-mould.png","Rusted Metal":"rusted-metal.png","Salt":"salt.png","Silicate Powder":"silicate-powder.png","Silver":"silver.png","Sodium":"sodium.png","Sodium Nitrate":"sodium-nitrate.png","Solanium":"solanium.png","Star Bulb":"star-bulb.png","Starship Launch Fuel":"starship-launch-fuel.png","Sulphurine":"sulphurine.png","Tainted Metal":"tainted-metal.png","Thermic Condensate":"thermic-condensate.png","Tritium":"tritium.png","Unstable Plasma":"unstable-plasma.png","Uranium":"uranium.png","Viscous Fluids":"viscous-fluids.png","Warp Cell":"warp-cell.png"};
+const SYM={"Carbon":"C","Condensed Carbon":"C+","Oxygen":"O2","Hexite":"X","Di-hydrogen":"H","Deuterium":"D","Tritium":"H3","Ferrite Dust":"Fe","Pure Ferrite":"Fe+","Magnetised Ferrite":"Fe++","Silicate Powder":"Si","Sodium":"Na","Sodium Nitrate":"Na+","Cobalt":"Co","Ionised Cobalt":"Co+","Salt":"NaCl","Chlorine":"Cl","Cyto-Phosphate":"Cy","Copper":"Cu","Cadmium":"Cd","Emeril":"Em","Indium":"In","Chromatic Metal":"Ch","Paraffinium":"Pf","Pyrite":"Py","Ammonia":"NH3","Uranium":"U","Dioxite":"CO2","Phosphorus":"P","Mordite":"Mo","Pugneum":"Pg","Silver":"Ag","Gold":"Au","Platinum":"Pt","Sulphurine":"Su","Radon":"Rn","Nitrogen":"N","Activated Copper":"Cu","Activated Cadmium":"Cd","Activated Emeril":"Em","Activated Indium":"In","Fungal Mould":"Ml","Frost Crystal":"Fc","Gamma Root":"Gr","Cactus Flesh":"Cc","Solanium":"So","Star Bulb":"Sb","Marrow Bulb":"Bu","Kelp Sac":"Ke","Faecium":"Fa","Residual Goop":"Jn","Runaway Mould":"Jn","Rusted Metal":"Jn","Living Slime":"Jn","Viscous Fluids":"Jn","Nanite Cluster":"∞","Tainted Metal":"Un","Atlantideum":"∞"};
+function icon(n){const f=ICON[n];return f?'<img class="ico" src="icons/'+f+'" alt="" loading="lazy">':'';}
+
 const out=document.getElementById("out");
 const qEl=document.getElementById("q");
 const countEl=document.getElementById("count");
 let rf="all", multOnly=false;
 
 function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+// auto abbreviation = initials of each word (split on spaces and hyphens), e.g.
+// "Chromatic Metal"->"cm", "Di-hydrogen Jelly"->"dhj". Matched exactly in search.
+const abbrCache={};
+function abbr(n){return abbrCache[n]||(abbrCache[n]=n.split(/[\s-]+/).filter(Boolean).map(w=>w[0]).join("").toLowerCase());}
 function hl(name,q){
   if(!q)return esc(name);
   const i=name.toLowerCase().indexOf(q);
@@ -483,8 +494,11 @@ function render(){
     if(rf!=="all"&&r.r!==rf)return false;
     if(multOnly&&!r.mult)return false;
     if(q){
-      const hay=r.i.map(x=>x[1]).concat(r.o[1]).join(" ").toLowerCase();
-      if(!hay.includes(q))return false;
+      const mats=r.i.map(x=>x[1]).concat(r.o[1]);
+      const hay=mats.join(" ").toLowerCase();
+      // match by name substring, exact in-game symbol (e.g. "fe++","co2"), or auto-initials ("dhj")
+      const symHit=mats.some(m=>(SYM[m]&&SYM[m].toLowerCase()===q)||abbr(m)===q);
+      if(!hay.includes(q)&&!symHit)return false;
     }
     return true;
   });
@@ -505,10 +519,10 @@ function render(){
     for(const r of sub){
       const ins=r.i.map((x,idx)=>
         (idx?'<span class="plus">+</span>':'')+
-        `<span class="ing"><span class="q">${x[0]}</span><span class="n">${hl(x[1],q)}</span></span>`
+        `<span class="ing">${icon(x[1])}<span class="q">${x[0]}</span><span class="n">${hl(x[1],q)}</span></span>`
       ).join("");
       const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
-      const outHtml=`<span class="ing out"><span class="q">${r.o[0]}</span><span class="n">${hl(r.o[1],q)}</span></span>`;
+      const outHtml=`<span class="ing out">${icon(r.o[1])}<span class="q">${r.o[0]}</span><span class="n">${hl(r.o[1],q)}</span></span>`;
       html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${outHtml}</div></div>`;
     }
     html+="</div></div>";
@@ -527,6 +541,74 @@ document.getElementById("multToggle").addEventListener("click",e=>{
 });
 qEl.addEventListener("input",render);
 render();
+</script>
+<script>
+/* In-app self-updater (native Android only). Checks GitHub Releases for a newer
+   APK and offers a one-tap download+install via the native Updater plugin. */
+(function(){
+  const Cap = window.Capacitor;
+  if(!Cap || typeof Cap.isNativePlatform !== "function" || !Cap.isNativePlatform()) return;
+  const Updater = Cap.Plugins && Cap.Plugins.Updater;
+  if(!Updater) return;
+  const REPO = "YotaPower04/nms-refiner";
+
+  function isNewer(a,b){
+    const pa=String(a).split("."), pb=String(b).split(".");
+    for(let i=0;i<Math.max(pa.length,pb.length);i++){
+      const x=parseInt(pa[i],10)||0, y=parseInt(pb[i],10)||0;
+      if(x>y) return true; if(x<y) return false;
+    }
+    return false;
+  }
+
+  function banner(version, url){
+    const bar=document.createElement("div");
+    bar.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e141d;border-top:1px solid #2ee6d6;color:#e6f1ff;font-family:inherit;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 -4px 18px rgba(0,0,0,.5)";
+    const txt=document.createElement("div");
+    txt.style.cssText="flex:1;font-size:14px";
+    txt.textContent="Update available — v"+version;
+    const btn=document.createElement("button");
+    btn.textContent="Update";
+    btn.style.cssText="background:#2ee6d6;color:#04211f;border:0;border-radius:6px;padding:8px 14px;font-weight:700;font-family:inherit";
+    const close=document.createElement("button");
+    close.textContent="✕"; close.setAttribute("aria-label","Dismiss");
+    close.style.cssText="background:transparent;color:#77ddaa;border:0;font-size:16px;padding:6px";
+    close.onclick=()=>bar.remove();
+    btn.onclick=async()=>{
+      try{
+        const can=await Updater.canInstall();
+        if(!can.allowed){
+          txt.textContent="Allow “install unknown apps”, then tap Update again.";
+          await Updater.openInstallSettings();
+          return;
+        }
+        btn.disabled=true; txt.textContent="Downloading v"+version+"…";
+        await Updater.downloadAndInstall({url:url});
+        txt.textContent="Opening installer…";
+      }catch(e){
+        btn.disabled=false; txt.textContent="Update failed: "+((e&&e.message)||e);
+      }
+    };
+    bar.appendChild(txt); bar.appendChild(btn); bar.appendChild(close);
+    document.body.appendChild(bar);
+  }
+
+  async function check(){
+    try{
+      const info=await Updater.getInfo();
+      const res=await fetch("https://api.github.com/repos/"+REPO+"/releases/latest",{headers:{Accept:"application/vnd.github+json"}});
+      if(!res.ok) return;
+      const rel=await res.json();
+      const latest=String(rel.tag_name||"").replace(/^v/,"");
+      const current=String(info.versionName||"").replace(/^v/,"");
+      if(!latest || !isNewer(latest,current)) return;
+      const asset=(rel.assets||[]).find(a=>/\.apk$/i.test(a.name));
+      if(!asset) return;
+      banner(latest, asset.browser_download_url);
+    }catch(e){ /* offline or API error: ignore silently */ }
+  }
+  setTimeout(check, 2500);
+})();
 </script>
 <script>
 if("serviceWorker" in navigator){
