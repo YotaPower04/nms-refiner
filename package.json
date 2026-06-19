@@ -1,0 +1,10 @@
+{
+  "name": "nms-refiner-cheatsheet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Searchable No Man's Sky refining recipe cheat sheet — installable offline PWA.",
+  "scripts": {
+    "start": "npx --yes serve -l 8080 .",
+    "serve": "python3 -m http.server 8080"
+  }
+}

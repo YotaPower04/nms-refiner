@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NMS Refiner Cheat Sheet</title>
+<meta name="theme-color" content="#070b11">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NMS Refiner">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b11;
+    --panel:#0e141d;
+    --panel2:#131b26;
+    --line:#1d2836;
+    --teal:#2ee6d6;
+    --teal-dim:#15605c;
+    --amber:#ffb454;
+    --green:#86e09a;
+    --text:#cdd9e6;
+    --muted:#6c7c90;
+    --display:'Chakra Petch',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--mono);font-size:14px;line-height:1.5;
+    background-image:radial-gradient(circle at 15% -10%,rgba(46,230,214,.06),transparent 40%),radial-gradient(circle at 90% 0%,rgba(255,180,84,.05),transparent 45%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+
+  /* ---- Header / HUD ---- */
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg) 70%,rgba(7,11,17,.85));backdrop-filter:blur(6px);padding-top:22px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--display);font-weight:600;letter-spacing:.34em;text-transform:uppercase;font-size:10.5px;color:var(--teal);display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,5vw,42px);margin:6px 0 2px;letter-spacing:.01em;line-height:1.04}
+  h1 .glow{color:var(--teal);text-shadow:0 0 22px rgba(46,230,214,.45)}
+  .sub{color:var(--muted);font-size:12.5px;max-width:60ch;margin-bottom:16px}
+
+  /* ---- Controls ---- */
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-bottom:16px}
+  .search{position:relative;flex:1 1 260px;min-width:200px}
+  .search input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:14px;padding:11px 12px 11px 36px;border-radius:7px;outline:none;transition:border-color .15s,box-shadow .15s}
+  .search input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(46,230,214,.12)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted)}
+  .segs{display:flex;gap:6px;flex-wrap:wrap}
+  .seg{font-family:var(--display);font-weight:600;letter-spacing:.05em;font-size:11.5px;text-transform:uppercase;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:9px 13px;border-radius:7px;cursor:pointer;transition:.14s;user-select:none}
+  .seg:hover{color:var(--text);border-color:#2d3c4f}
+  .seg[aria-pressed="true"]{color:var(--bg);background:var(--teal);border-color:var(--teal);box-shadow:0 0 16px rgba(46,230,214,.3)}
+  .seg.amber[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);box-shadow:0 0 16px rgba(255,180,84,.3)}
+
+  .count{font-size:11.5px;color:var(--muted);padding:4px 2px 14px;letter-spacing:.03em}
+  .count b{color:var(--teal);font-weight:700}
+
+  /* ---- Recipe rows ---- */
+  .group{margin-top:18px}
+  .grouphd{font-family:var(--display);font-weight:600;letter-spacing:.2em;text-transform:uppercase;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;margin:10px 2px 8px}
+  .grouphd span{color:var(--teal)}
+  .grouphd::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .rows{display:grid;gap:7px}
+  .row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 14px;transition:border-color .12s,background .12s}
+  .row:hover{border-color:#2a3a4d;background:var(--panel2)}
+  .row.mult{border-color:rgba(255,180,84,.32);background:linear-gradient(90deg,rgba(255,180,84,.05),var(--panel) 55%)}
+  .row.mult:hover{border-color:rgba(255,180,84,.55)}
+  .ins,.outs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .outs{justify-content:flex-start}
+  .ing{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap;font-size:13px}
+  .ing .q{font-weight:700;color:var(--muted);font-size:11.5px;min-width:fit-content}
+  .ing .n{color:var(--text)}
+  .out .n{color:var(--teal)}
+  .out .q{color:var(--teal)}
+  .plus{color:var(--muted);font-weight:700;opacity:.6;font-size:12px}
+  .arrow{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--teal);min-width:54px}
+  .arrow svg{width:30px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .badge{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(255,180,84,.4);border-radius:4px;padding:1px 5px;line-height:1.4;white-space:nowrap}
+  .row.mult .arrow{color:var(--amber)}
+  .hl{background:rgba(46,230,214,.22);border-radius:3px;color:#eafffb;padding:0 1px}
+
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:13px}
+  .empty b{color:var(--text);font-family:var(--display)}
+
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.7}
+  footer b{color:var(--amber);font-weight:600}
+  a{color:var(--teal)}
+
+  @media(max-width:620px){
+    .row{grid-template-columns:1fr;gap:6px;padding:11px 13px}
+    .arrow{flex-direction:row;min-width:0;justify-content:flex-start;gap:8px;color:var(--teal)}
+    .arrow svg{transform:rotate(90deg);width:14px}
+    .badge{margin-left:2px}
+    .outs{padding-left:2px}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Refiner Database &middot; Field Reference</div>
+    <h1>Every Refining <span class="glow">Combination</span></h1>
+    <p class="sub">Search by any input or output material. Filter by refiner size. Flip on <b style="color:var(--amber)">Multipliers</b> to isolate every self-feeding dupe loop &mdash; recipes that return more of a material than they consume.</p>
+    <div class="controls">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="text" placeholder="Search material… (e.g. cobalt, chromatic, platinum)" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="segs" id="rfilter">
+        <div class="seg" data-r="all" aria-pressed="true">All</div>
+        <div class="seg" data-r="P" aria-pressed="false">Portable</div>
+        <div class="seg" data-r="M" aria-pressed="false">Medium</div>
+        <div class="seg" data-r="L" aria-pressed="false">Large</div>
+      </div>
+      <div class="seg amber" id="multToggle" aria-pressed="false">&#x27F3; Multipliers</div>
+    </div>
+    <div class="count" id="count"></div>
+  </div>
+</header>
+
+<main class="wrap" id="out"></main>
+
+<footer class="wrap">
+  Source: community-datamined refiner tables (Interceptor build, cross-checked against current wiki recipe pages). <b>Recipe yields are retuned by Hello Games from time to time</b> &mdash; treat exact ratios as a strong guide and confirm anything you're scaling a farm around in your live game. Precious-metal inputs in alloy recipes are interchangeable at different efficiencies: Platinum &gt; Gold &gt; Silver &gt; Tritium. Two- and three-input recipes need a Medium or Large refiner respectively.
+</footer>
+
+<script>
+// r: refiner (P portable / M medium / L large). i: inputs [[qty,name]]. o: output [qty,name]
+const DATA = [
+// ---------- PORTABLE ----------
+{r:"P",i:[[1,"Oxygen"]],o:[1,"Carbon"]},
+{r:"P",i:[[1,"Condensed Carbon"]],o:[2,"Carbon"]},
+{r:"P",i:[[1,"Fungal Mould"]],o:[2,"Carbon"]},
+{r:"P",i:[[1,"Gamma Root"]],o:[2,"Carbon"]},
+{r:"P",i:[[1,"Cactus Flesh"]],o:[2,"Carbon"]},
+{r:"P",i:[[1,"Solanium"]],o:[2,"Carbon"]},
+{r:"P",i:[[1,"Star Bulb"]],o:[2,"Carbon"]},
+{r:"P",i:[[2,"Salt"]],o:[1,"Chlorine"]},
+{r:"P",i:[[1,"Cadmium"]],o:[1,"Chromatic Metal"]},
+{r:"P",i:[[2,"Copper"]],o:[1,"Chromatic Metal"]},
+{r:"P",i:[[1,"Activated Copper"]],o:[1,"Chromatic Metal"]},
+{r:"P",i:[[1,"Activated Cadmium"]],o:[2,"Chromatic Metal"]},
+{r:"P",i:[[2,"Emeril"]],o:[3,"Chromatic Metal"]},
+{r:"P",i:[[1,"Activated Emeril"]],o:[3,"Chromatic Metal"]},
+{r:"P",i:[[2,"Indium"]],o:[4,"Chromatic Metal"]},
+{r:"P",i:[[1,"Activated Indium"]],o:[4,"Chromatic Metal"]},
+{r:"P",i:[[1,"Ionised Cobalt"]],o:[2,"Cobalt"]},
+{r:"P",i:[[1,"Cyto-Phosphate"]],o:[1,"Condensed Carbon"]},
+{r:"P",i:[[2,"Carbon"]],o:[1,"Condensed Carbon"]},
+{r:"P",i:[[30,"Di-hydrogen"]],o:[1,"Di-hydrogen Jelly"]},
+{r:"P",i:[[5,"Tritium"]],o:[1,"Di-hydrogen"]},
+{r:"P",i:[[1,"Di-hydrogen Jelly"]],o:[50,"Di-hydrogen"]},
+{r:"P",i:[[3,"Mordite"]],o:[1,"Faecium"]},
+{r:"P",i:[[1,"Paraffinium"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Pyrite"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Ammonia"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Uranium"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Dioxite"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Phosphorus"]],o:[1,"Ferrite Dust"]},
+{r:"P",i:[[1,"Rusted Metal"]],o:[2,"Ferrite Dust"]},
+{r:"P",i:[[40,"Frost Crystal"]],o:[1,"Glass"]},
+{r:"P",i:[[40,"Silicate Powder"]],o:[1,"Glass"]},
+{r:"P",i:[[1,"Hexite"]],o:[1,"Gold"]},
+{r:"P",i:[[1,"Living Pearl"]],o:[100,"Gold"]},
+{r:"P",i:[[1,"Lemmium"]],o:[125,"Gold"]},
+{r:"P",i:[[1,"Magno-Gold"]],o:[125,"Gold"]},
+{r:"P",i:[[1,"Grantine"]],o:[125,"Gold"]},
+{r:"P",i:[[2,"Cobalt"]],o:[1,"Ionised Cobalt"]},
+{r:"P",i:[[1,"Viscous Fluids"]],o:[1,"Living Slime"]},
+{r:"P",i:[[1,"Hypnotic Eye"]],o:[50,"Living Slime"]},
+{r:"P",i:[[2,"Pure Ferrite"]],o:[1,"Magnetised Ferrite"]},
+{r:"P",i:[[2,"Faecium"]],o:[2,"Mordite"]},
+{r:"P",i:[[35,"Platinum"]],o:[1,"Nanite Cluster"]},
+{r:"P",i:[[25,"Pugneum"]],o:[1,"Nanite Cluster"]},
+{r:"P",i:[[5,"Runaway Mould"]],o:[1,"Nanite Cluster"]},
+{r:"P",i:[[1,"Salvaged Data"]],o:[15,"Nanite Cluster"]},
+{r:"P",i:[[1,"Hadal Core"]],o:[50,"Nanite Cluster"]},
+{r:"P",i:[[1,"Larval Core"]],o:[50,"Nanite Cluster"]},
+{r:"P",i:[[1,"Tainted Metal"]],o:[2,"Nanite Cluster"]},
+{r:"P",i:[[3,"Radon"]],o:[1,"Nitrogen"]},
+{r:"P",i:[[3,"Kelp Sac"]],o:[1,"Oxygen"]},
+{r:"P",i:[[1,"Geodesite"]],o:[250,"Platinum"]},
+{r:"P",i:[[1,"Iridesite"]],o:[250,"Platinum"]},
+{r:"P",i:[[1,"Ferrite Dust"]],o:[1,"Pure Ferrite"]},
+{r:"P",i:[[1,"Rare Metal Element"]],o:[150,"Pure Ferrite"]},
+{r:"P",i:[[1,"Magnetised Ferrite"]],o:[2,"Pure Ferrite"]},
+{r:"P",i:[[1,"Gold"]],o:[1,"Pyrite"]},
+{r:"P",i:[[3,"Sulphurine"]],o:[1,"Radon"]},
+{r:"P",i:[[1,"Living Slime"]],o:[1,"Runaway Mould"]},
+{r:"P",i:[[1,"Chlorine"]],o:[2,"Salt"]},
+{r:"P",i:[[1,"Aronium"]],o:[250,"Silver"]},
+{r:"P",i:[[1,"Dirty Bronze"]],o:[250,"Silver"]},
+{r:"P",i:[[1,"Herox"]],o:[250,"Silver"]},
+{r:"P",i:[[2,"Sodium"]],o:[1,"Sodium Nitrate"]},
+{r:"P",i:[[1,"Crystal Sulphide"]],o:[50,"Sodium Nitrate"]},
+{r:"P",i:[[1,"Marrow Bulb"]],o:[1,"Sodium"]},
+{r:"P",i:[[1,"Sodium Nitrate"]],o:[2,"Sodium"]},
+{r:"P",i:[[3,"Nitrogen"]],o:[1,"Sulphurine"]},
+{r:"P",i:[[1,"Residual Goop"]],o:[1,"Viscous Fluids"]},
+{r:"P",i:[[1,"Atlantideum"]],o:[2,"Pugneum"]},
+{r:"P",i:[[1,"Radiant Shard"]],o:[1,"Nanite Cluster"]},
+{r:"P",i:[[1,"Inverted Mirror"]],o:[1,"Nanite Cluster"]},
+
+// ---------- MEDIUM ----------
+{r:"M",i:[[1,"Nitrogen"],[1,"Di-hydrogen"]],o:[1,"Ammonia"]},
+{r:"M",i:[[2,"Paraffinium"],[1,"Ferrite Dust"]],o:[1,"Ammonia"]},
+{r:"M",i:[[1,"Paraffinium"],[1,"Pure Ferrite"]],o:[1,"Ammonia"]},
+{r:"M",i:[[2,"Fungal Mould"],[1,"Salt"]],o:[1,"Ammonia"]},
+{r:"M",i:[[2,"Pyrite"],[1,"Oxygen"]],o:[1,"Cactus Flesh"]},
+{r:"M",i:[[2,"Pyrite"],[1,"Sulphurine"]],o:[1,"Cactus Flesh"]},
+{r:"M",i:[[1,"Pyrite"],[1,"Cactus Flesh"]],o:[2,"Cactus Flesh"]},
+{r:"M",i:[[1,"Cadmium"],[1,"Chromatic Metal"]],o:[2,"Cadmium"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Oxygen"]],o:[2,"Chlorine"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Pugneum"]],o:[2,"Chlorine"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Salt"]],o:[2,"Chlorine"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Chlorine"]],o:[2,"Chlorine"]},
+{r:"M",i:[[2,"Salt"],[2,"Oxygen"]],o:[5,"Chlorine"]},
+{r:"M",i:[[1,"Chlorine"],[2,"Oxygen"]],o:[6,"Chlorine"]},
+{r:"M",i:[[1,"Copper"],[1,"Pure Ferrite"]],o:[1,"Chromatic Metal"]},
+{r:"M",i:[[1,"Cadmium"],[1,"Pure Ferrite"]],o:[2,"Chromatic Metal"]},
+{r:"M",i:[[1,"Activated Copper"],[1,"Pure Ferrite"]],o:[2,"Chromatic Metal"]},
+{r:"M",i:[[1,"Emeril"],[1,"Pure Ferrite"]],o:[3,"Chromatic Metal"]},
+{r:"M",i:[[1,"Indium"],[1,"Pure Ferrite"]],o:[4,"Chromatic Metal"]},
+{r:"M",i:[[1,"Activated Cadmium"],[1,"Pure Ferrite"]],o:[4,"Chromatic Metal"]},
+{r:"M",i:[[1,"Activated Emeril"],[1,"Pure Ferrite"]],o:[6,"Chromatic Metal"]},
+{r:"M",i:[[1,"Activated Indium"],[1,"Pure Ferrite"]],o:[8,"Chromatic Metal"]},
+{r:"M",i:[[1,"Uranium"],[1,"Di-hydrogen"]],o:[2,"Condensed Carbon"]},
+{r:"M",i:[[1,"Faecium"],[1,"Carbon"]],o:[2,"Condensed Carbon"]},
+{r:"M",i:[[1,"Faecium"],[1,"Mordite"]],o:[2,"Condensed Carbon"]},
+{r:"M",i:[[1,"Faecium"],[1,"Condensed Carbon"]],o:[3,"Condensed Carbon"]},
+{r:"M",i:[[1,"Carbon"],[1,"Oxygen"]],o:[5,"Condensed Carbon"]},
+{r:"M",i:[[1,"Condensed Carbon"],[1,"Oxygen"]],o:[6,"Condensed Carbon"]},
+{r:"M",i:[[1,"Copper"],[1,"Chromatic Metal"]],o:[2,"Copper"]},
+{r:"M",i:[[1,"Di-hydrogen"],[1,"Tritium"]],o:[1,"Deuterium"]},
+{r:"M",i:[[1,"Carbon"],[1,"Sodium Nitrate"]],o:[1,"Dioxite"]},
+{r:"M",i:[[2,"Ammonia"],[1,"Ferrite Dust"]],o:[1,"Dioxite"]},
+{r:"M",i:[[2,"Ammonia"],[1,"Pure Ferrite"]],o:[1,"Dioxite"]},
+{r:"M",i:[[1,"Frost Crystal"],[1,"Salt"]],o:[1,"Dioxite"]},
+{r:"M",i:[[1,"Condensed Carbon"],[1,"Sodium Nitrate"]],o:[2,"Dioxite"]},
+{r:"M",i:[[1,"Emeril"],[1,"Chromatic Metal"]],o:[4,"Emeril"]},
+{r:"M",i:[[1,"Di-hydrogen"],[1,"Carbon"]],o:[1,"Faecium"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Nitrogen"]],o:[1,"Faecium"]},
+{r:"M",i:[[2,"Carbon"],[1,"Mordite"]],o:[3,"Faecium"]},
+{r:"M",i:[[1,"Faecium"],[1,"Oxygen"]],o:[3,"Faecium"]},
+{r:"M",i:[[1,"Condensed Carbon"],[1,"Mordite"]],o:[4,"Faecium"]},
+{r:"M",i:[[2,"Dioxite"],[1,"Oxygen"]],o:[1,"Frost Crystal"]},
+{r:"M",i:[[1,"Dioxite"],[1,"Radon"]],o:[1,"Frost Crystal"]},
+{r:"M",i:[[1,"Dioxite"],[1,"Frost Crystal"]],o:[2,"Frost Crystal"]},
+{r:"M",i:[[2,"Ammonia"],[1,"Oxygen"]],o:[1,"Fungal Mould"]},
+{r:"M",i:[[1,"Ammonia"],[1,"Nitrogen"]],o:[1,"Fungal Mould"]},
+{r:"M",i:[[1,"Ammonia"],[1,"Fungal Mould"]],o:[2,"Fungal Mould"]},
+{r:"M",i:[[2,"Uranium"],[1,"Oxygen"]],o:[1,"Gamma Root"]},
+{r:"M",i:[[1,"Uranium"],[1,"Radon"]],o:[1,"Gamma Root"]},
+{r:"M",i:[[1,"Uranium"],[1,"Gamma Root"]],o:[2,"Gamma Root"]},
+{r:"M",i:[[50,"Cyto-Phosphate"],[50,"Salt"]],o:[1,"Glass"]},
+{r:"M",i:[[1,"Faecium"],[1,"Residual Goop"]],o:[1,"Gold"]},
+{r:"M",i:[[1,"Mordite"],[1,"Pugneum"]],o:[1,"Gold"]},
+{r:"M",i:[[1,"Faecium"],[1,"Pugneum"]],o:[2,"Gold"]},
+{r:"M",i:[[1,"Indium"],[1,"Chromatic Metal"]],o:[2,"Indium"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Oxygen"]],o:[2,"Ionised Cobalt"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Pugneum"]],o:[2,"Ionised Cobalt"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Cobalt"]],o:[2,"Ionised Cobalt"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Ionised Cobalt"]],o:[2,"Ionised Cobalt"]},
+{r:"M",i:[[2,"Cobalt"],[2,"Oxygen"]],o:[5,"Ionised Cobalt"]},
+{r:"M",i:[[1,"Ionised Cobalt"],[2,"Oxygen"]],o:[6,"Ionised Cobalt"]},
+{r:"M",i:[[1,"Salt"],[1,"Nitrogen"]],o:[1,"Kelp Sac"]},
+{r:"M",i:[[1,"Ferrite Dust"],[1,"Carbon"]],o:[1,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Copper"],[1,"Ferrite Dust"]],o:[1,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Platinum"],[1,"Oxygen"]],o:[10,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Ferrite Dust"],[1,"Condensed Carbon"]],o:[2,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Pure Ferrite"],[1,"Carbon"]],o:[2,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Cadmium"],[1,"Ferrite Dust"]],o:[2,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Activated Copper"],[1,"Ferrite Dust"]],o:[2,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Pure Ferrite"],[1,"Condensed Carbon"]],o:[3,"Magnetised Ferrite"]},
+{r:"M",i:[[2,"Pure Ferrite"],[1,"Pugneum"]],o:[3,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Emeril"],[1,"Ferrite Dust"]],o:[3,"Magnetised Ferrite"]},
+{r:"M",i:[[3,"Magnetised Ferrite"],[1,"Pugneum"]],o:[4,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Indium"],[1,"Ferrite Dust"]],o:[4,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Activated Cadmium"],[1,"Ferrite Dust"]],o:[4,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Activated Emeril"],[1,"Ferrite Dust"]],o:[6,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Activated Indium"],[1,"Ferrite Dust"]],o:[8,"Magnetised Ferrite"]},
+{r:"M",i:[[1,"Cobalt"],[1,"Nitrogen"]],o:[1,"Marrow Bulb"]},
+{r:"M",i:[[2,"Sodium"],[1,"Mordite"]],o:[3,"Marrow Bulb"]},
+{r:"M",i:[[1,"Sodium Nitrate"],[1,"Mordite"]],o:[4,"Marrow Bulb"]},
+{r:"M",i:[[1,"Di-hydrogen"],[1,"Condensed Carbon"]],o:[1,"Mordite"]},
+{r:"M",i:[[1,"Carbon"],[1,"Pugneum"]],o:[1,"Mordite"]},
+{r:"M",i:[[1,"Condensed Carbon"],[1,"Pugneum"]],o:[2,"Mordite"]},
+{r:"M",i:[[1,"Faecium"],[1,"Hexite"]],o:[1,"Nanite Cluster"]},
+{r:"M",i:[[1,"Radon"],[1,"Oxygen"]],o:[1,"Nitrogen"]},
+{r:"M",i:[[1,"Radon"],[1,"Chromatic Metal"]],o:[1,"Nitrogen"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Carbon"]],o:[2,"Oxygen"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[2,"Oxygen"]},
+{r:"M",i:[[2,"Pyrite"],[1,"Ferrite Dust"]],o:[1,"Paraffinium"]},
+{r:"M",i:[[2,"Pyrite"],[1,"Pure Ferrite"]],o:[1,"Paraffinium"]},
+{r:"M",i:[[2,"Star Bulb"],[1,"Salt"]],o:[1,"Paraffinium"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Ferrite Dust"]],o:[1,"Paraffinium"]},
+{r:"M",i:[[1,"Silver"],[1,"Oxygen"]],o:[2,"Paraffinium"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Pure Ferrite"]],o:[2,"Paraffinium"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Magnetised Ferrite"]],o:[3,"Paraffinium"]},
+{r:"M",i:[[2,"Dioxite"],[1,"Ferrite Dust"]],o:[1,"Phosphorus"]},
+{r:"M",i:[[2,"Dioxite"],[1,"Pure Ferrite"]],o:[1,"Phosphorus"]},
+{r:"M",i:[[2,"Solanium"],[1,"Salt"]],o:[1,"Phosphorus"]},
+{r:"M",i:[[1,"Gold"],[1,"Silver"]],o:[1,"Platinum"]},
+{r:"M",i:[[2,"Ferrite Dust"],[1,"Pugneum"]],o:[3,"Pure Ferrite"]},
+{r:"M",i:[[2,"Uranium"],[1,"Ferrite Dust"]],o:[1,"Pyrite"]},
+{r:"M",i:[[2,"Uranium"],[1,"Pure Ferrite"]],o:[1,"Pyrite"]},
+{r:"M",i:[[2,"Cactus Flesh"],[1,"Salt"]],o:[1,"Pyrite"]},
+{r:"M",i:[[1,"Gold"],[1,"Oxygen"]],o:[2,"Pyrite"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Oxygen"]],o:[1,"Radon"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Chromatic Metal"]],o:[1,"Radon"]},
+{r:"M",i:[[1,"Ferrite Dust"],[1,"Oxygen"]],o:[1,"Rusted Metal"]},
+{r:"M",i:[[1,"Pure Ferrite"],[1,"Oxygen"]],o:[2,"Rusted Metal"]},
+{r:"M",i:[[1,"Di-hydrogen"],[1,"Oxygen"]],o:[1,"Salt"]},
+{r:"M",i:[[1,"Sodium"],[1,"Oxygen"]],o:[1,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Carbon"],[1,"Sodium"]],o:[1,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Sodium"],[1,"Pugneum"]],o:[1,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Sodium"]],o:[1,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Ferrite Dust"]],o:[1,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Sodium Nitrate"],[1,"Oxygen"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Condensed Carbon"],[1,"Sodium"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Sodium Nitrate"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Sodium"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Sodium"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Faecium"],[1,"Sodium"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Sodium Nitrate"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Kelp Sac"],[1,"Sodium Nitrate"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Pure Ferrite"]],o:[2,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Sodium Nitrate"],[1,"Pugneum"]],o:[3,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Magnetised Ferrite"]],o:[3,"Sodium Nitrate"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Carbon"]],o:[2,"Sodium"]},
+{r:"M",i:[[1,"Marrow Bulb"],[1,"Condensed Carbon"]],o:[2,"Sodium"]},
+{r:"M",i:[[1,"Sulphurine"],[1,"Di-hydrogen"]],o:[1,"Solanium"]},
+{r:"M",i:[[2,"Phosphorus"],[1,"Oxygen"]],o:[1,"Solanium"]},
+{r:"M",i:[[1,"Phosphorus"],[1,"Sulphurine"]],o:[1,"Solanium"]},
+{r:"M",i:[[1,"Phosphorus"],[1,"Solanium"]],o:[2,"Solanium"]},
+{r:"M",i:[[1,"Paraffinium"],[1,"Oxygen"]],o:[1,"Star Bulb"]},
+{r:"M",i:[[1,"Paraffinium"],[1,"Nitrogen"]],o:[1,"Star Bulb"]},
+{r:"M",i:[[1,"Paraffinium"],[1,"Star Bulb"]],o:[2,"Star Bulb"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Oxygen"]],o:[1,"Sulphurine"]},
+{r:"M",i:[[1,"Nitrogen"],[1,"Chromatic Metal"]],o:[1,"Sulphurine"]},
+{r:"M",i:[[1,"Radon"],[1,"Di-hydrogen"]],o:[1,"Uranium"]},
+{r:"M",i:[[2,"Phosphorus"],[1,"Ferrite Dust"]],o:[1,"Uranium"]},
+{r:"M",i:[[2,"Phosphorus"],[1,"Pure Ferrite"]],o:[1,"Uranium"]},
+{r:"M",i:[[2,"Gamma Root"],[1,"Salt"]],o:[1,"Uranium"]},
+{r:"M",i:[[1,"Ferrite Dust"],[1,"Radon"]],o:[1,"Uranium"]},
+{r:"M",i:[[1,"Radon"],[1,"Pure Ferrite"]],o:[2,"Uranium"]},
+{r:"M",i:[[1,"Radon"],[1,"Magnetised Ferrite"]],o:[3,"Uranium"]},
+{r:"M",i:[[1,"Atlantideum"],[1,"Pugneum"]],o:[1,"Runaway Mould"]},
+
+// ---------- LARGE ----------
+{r:"L",i:[[30,"Paraffinium"],[60,"Cobalt"],[30,"Tritium"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[30,"Ionised Cobalt"],[20,"Tritium"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[60,"Cobalt"],[20,"Silver"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[30,"Ionised Cobalt"],[20,"Silver"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[60,"Cobalt"],[10,"Gold"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[30,"Ionised Cobalt"],[10,"Gold"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[60,"Cobalt"],[5,"Platinum"]],o:[1,"Aronium"]},
+{r:"L",i:[[30,"Paraffinium"],[30,"Ionised Cobalt"],[5,"Platinum"]],o:[1,"Aronium"]},
+{r:"L",i:[[1,"Silver"],[1,"Gold"],[1,"Cadmium"]],o:[10,"Chromatic Metal"]},
+{r:"L",i:[[1,"Silver"],[1,"Gold"],[1,"Emeril"]],o:[20,"Chromatic Metal"]},
+{r:"L",i:[[1,"Silver"],[1,"Gold"],[1,"Indium"]],o:[30,"Chromatic Metal"]},
+{r:"L",i:[[1,"Silver"],[1,"Gold"],[1,"Copper"]],o:[5,"Chromatic Metal"]},
+{r:"L",i:[[30,"Pyrite"],[120,"Ferrite Dust"],[20,"Tritium"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[60,"Pure Ferrite"],[20,"Tritium"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[120,"Ferrite Dust"],[20,"Silver"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[60,"Pure Ferrite"],[20,"Silver"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[120,"Ferrite Dust"],[10,"Gold"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[60,"Pure Ferrite"],[10,"Gold"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[120,"Ferrite Dust"],[5,"Platinum"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[30,"Pyrite"],[60,"Pure Ferrite"],[5,"Platinum"]],o:[1,"Dirty Bronze"]},
+{r:"L",i:[[100,"Radon"],[20,"Carbon"],[10,"Salt"]],o:[1,"Enriched Carbon"]},
+{r:"L",i:[[100,"Radon"],[10,"Condensed Carbon"],[10,"Salt"]],o:[1,"Enriched Carbon"]},
+{r:"L",i:[[100,"Radon"],[20,"Carbon"],[5,"Chlorine"]],o:[1,"Enriched Carbon"]},
+{r:"L",i:[[100,"Radon"],[10,"Condensed Carbon"],[5,"Chlorine"]],o:[1,"Enriched Carbon"]},
+{r:"L",i:[[1,"Ferrite Dust"],[1,"Oxygen"],[1,"Emeril"]],o:[10,"Gold"]},
+{r:"L",i:[[30,"Dioxite"],[60,"Cobalt"],[20,"Tritium"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[30,"Ionised Cobalt"],[20,"Tritium"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[60,"Cobalt"],[20,"Silver"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[30,"Ionised Cobalt"],[20,"Silver"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[60,"Cobalt"],[10,"Gold"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[30,"Ionised Cobalt"],[10,"Gold"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[60,"Cobalt"],[5,"Platinum"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Dioxite"],[30,"Ionised Cobalt"],[5,"Platinum"]],o:[1,"Grantine"]},
+{r:"L",i:[[30,"Ammonia"],[60,"Cobalt"],[20,"Tritium"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[30,"Ionised Cobalt"],[20,"Tritium"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[60,"Cobalt"],[20,"Silver"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[30,"Ionised Cobalt"],[20,"Silver"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[60,"Cobalt"],[10,"Gold"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[30,"Ionised Cobalt"],[10,"Gold"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[60,"Cobalt"],[5,"Platinum"]],o:[1,"Herox"]},
+{r:"L",i:[[30,"Ammonia"],[30,"Ionised Cobalt"],[5,"Platinum"]],o:[1,"Herox"]},
+{r:"L",i:[[10,"Ferrite Dust"],[10,"Silver"],[10,"Sodium"]],o:[1,"Ion Battery"]},
+{r:"L",i:[[30,"Uranium"],[120,"Ferrite Dust"],[10,"Tritium"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[60,"Pure Ferrite"],[10,"Tritium"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[120,"Ferrite Dust"],[20,"Silver"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[60,"Pure Ferrite"],[20,"Silver"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[120,"Ferrite Dust"],[10,"Gold"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[60,"Pure Ferrite"],[10,"Gold"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[120,"Ferrite Dust"],[5,"Platinum"]],o:[1,"Lemmium"]},
+{r:"L",i:[[30,"Uranium"],[60,"Pure Ferrite"],[5,"Platinum"]],o:[1,"Lemmium"]},
+{r:"L",i:[[10,"Oxygen"],[10,"Condensed Carbon"],[10,"Di-hydrogen"]],o:[1,"Life Support Gel"]},
+{r:"L",i:[[1,"Ferrite Dust"],[1,"Pure Ferrite"],[1,"Platinum"]],o:[12,"Magnetised Ferrite"]},
+{r:"L",i:[[1,"Ferrite Dust"],[1,"Pure Ferrite"],[1,"Silver"]],o:[5,"Magnetised Ferrite"]},
+{r:"L",i:[[1,"Ferrite Dust"],[1,"Pure Ferrite"],[1,"Gold"]],o:[8,"Magnetised Ferrite"]},
+{r:"L",i:[[30,"Phosphorus"],[60,"Cobalt"],[20,"Tritium"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[30,"Ionised Cobalt"],[20,"Tritium"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[60,"Cobalt"],[20,"Silver"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[30,"Ionised Cobalt"],[20,"Silver"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[60,"Cobalt"],[10,"Gold"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[30,"Ionised Cobalt"],[10,"Gold"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[60,"Cobalt"],[5,"Platinum"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[30,"Phosphorus"],[30,"Ionised Cobalt"],[5,"Platinum"]],o:[1,"Magno-Gold"]},
+{r:"L",i:[[15,"Silver"],[15,"Gold"],[25,"Platinum"]],o:[1,"Nanite Cluster"]},
+{r:"L",i:[[100,"Nitrogen"],[20,"Carbon"],[10,"Salt"]],o:[1,"Nitrogen Salt"]},
+{r:"L",i:[[100,"Nitrogen"],[10,"Condensed Carbon"],[10,"Salt"]],o:[1,"Nitrogen Salt"]},
+{r:"L",i:[[100,"Nitrogen"],[20,"Carbon"],[5,"Chlorine"]],o:[1,"Nitrogen Salt"]},
+{r:"L",i:[[100,"Nitrogen"],[10,"Condensed Carbon"],[5,"Chlorine"]],o:[1,"Nitrogen Salt"]},
+{r:"L",i:[[1,"Fungal Mould"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Frost Crystal"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Cactus Flesh"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Solanium"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Gamma Root"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Star Bulb"],[1,"Kelp Sac"],[1,"Condensed Carbon"]],o:[10,"Oxygen"]},
+{r:"L",i:[[1,"Ferrite Dust"],[1,"Oxygen"],[250,"Chromatic Metal"]],o:[10,"Platinum"]},
+{r:"L",i:[[10,"Di-hydrogen"],[20,"Ferrite Dust"],[5,"Sodium Nitrate"]],o:[1,"Starship Launch Fuel"]},
+{r:"L",i:[[10,"Di-hydrogen"],[20,"Pure Ferrite"],[10,"Sodium"]],o:[1,"Starship Launch Fuel"]},
+{r:"L",i:[[10,"Di-hydrogen"],[10,"Magnetised Ferrite"],[5,"Sodium Nitrate"]],o:[1,"Starship Launch Fuel"]},
+{r:"L",i:[[100,"Sulphurine"],[20,"Carbon"],[10,"Salt"]],o:[1,"Thermic Condensate"]},
+{r:"L",i:[[100,"Sulphurine"],[10,"Condensed Carbon"],[10,"Salt"]],o:[1,"Thermic Condensate"]},
+{r:"L",i:[[100,"Sulphurine"],[20,"Carbon"],[5,"Chlorine"]],o:[1,"Thermic Condensate"]},
+{r:"L",i:[[100,"Sulphurine"],[10,"Condensed Carbon"],[5,"Chlorine"]],o:[1,"Thermic Condensate"]},
+{r:"L",i:[[10,"Oxygen"],[20,"Ferrite Dust"],[20,"Carbon"]],o:[1,"Unstable Plasma"]},
+{r:"L",i:[[10,"Oxygen"],[20,"Ferrite Dust"],[10,"Condensed Carbon"]],o:[1,"Unstable Plasma"]},
+{r:"L",i:[[10,"Oxygen"],[20,"Pure Ferrite"],[20,"Carbon"]],o:[1,"Unstable Plasma"]},
+{r:"L",i:[[10,"Oxygen"],[10,"Condensed Carbon"],[20,"Pure Ferrite"]],o:[1,"Unstable Plasma"]},
+{r:"L",i:[[25,"Condensed Carbon"],[10,"Sodium"],[250,"Chromatic Metal"]],o:[1,"Warp Cell"]},
+{r:"L",i:[[50,"Carbon"],[5,"Sodium Nitrate"],[250,"Chromatic Metal"]],o:[1,"Warp Cell"]},
+{r:"L",i:[[25,"Condensed Carbon"],[5,"Sodium Nitrate"],[250,"Chromatic Metal"]],o:[1,"Warp Cell"]},
+{r:"L",i:[[1,"Dirty Bronze"],[1,"Herox"],[1,"Lemmium"]],o:[1,"Geodesite"]},
+{r:"L",i:[[1,"Aronium"],[1,"Magno-Gold"],[1,"Grantine"]],o:[1,"Iridesite"]}
+];
+
+const RNAME={P:"Portable",M:"Medium",L:"Large"};
+
+// dedupe + flag multipliers (output material is also an input AND output qty exceeds that input qty)
+const seen=new Set();
+const recipes=[];
+for(const r of DATA){
+  const sig=r.r+"|"+r.i.map(x=>x[0]+x[1]).sort().join(",")+"|"+r.o[0]+r.o[1];
+  if(seen.has(sig))continue; seen.add(sig);
+  const match=r.i.find(x=>x[1]===r.o[1]);
+  r.mult = !!(match && r.o[0] > match[0]);
+  recipes.push(r);
+}
+
+const out=document.getElementById("out");
+const qEl=document.getElementById("q");
+const countEl=document.getElementById("count");
+let rf="all", multOnly=false;
+
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function hl(name,q){
+  if(!q)return esc(name);
+  const i=name.toLowerCase().indexOf(q);
+  if(i<0)return esc(name);
+  return esc(name.slice(0,i))+'<span class="hl">'+esc(name.slice(i,i+q.length))+'</span>'+esc(name.slice(i+q.length));
+}
+const arrowSVG='<svg viewBox="0 0 30 12"><path d="M0 6h26m-5-4 5 4-5 4"/></svg>';
+
+function render(){
+  const q=qEl.value.trim().toLowerCase();
+  let list=recipes.filter(r=>{
+    if(rf!=="all"&&r.r!==rf)return false;
+    if(multOnly&&!r.mult)return false;
+    if(q){
+      const hay=r.i.map(x=>x[1]).concat(r.o[1]).join(" ").toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    return true;
+  });
+
+  countEl.innerHTML=`<b>${list.length}</b> recipe${list.length===1?"":"s"}${multOnly?" &middot; multiplier loops":""}${q?` matching “${esc(q)}”`:""}`;
+
+  if(!list.length){
+    out.innerHTML='<div class="empty"><b>No matches.</b><br>Try a material name like cobalt, platinum, or chromatic metal.</div>';
+    return;
+  }
+
+  const order=["P","M","L"];
+  let html="";
+  for(const key of order){
+    const sub=list.filter(r=>r.r===key);
+    if(!sub.length)continue;
+    html+=`<div class="group"><div class="grouphd"><span>${RNAME[key]}</span> Refiner &middot; ${sub.length}</div><div class="rows">`;
+    for(const r of sub){
+      const ins=r.i.map((x,idx)=>
+        (idx?'<span class="plus">+</span>':'')+
+        `<span class="ing"><span class="q">${x[0]}</span><span class="n">${hl(x[1],q)}</span></span>`
+      ).join("");
+      const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
+      const outHtml=`<span class="ing out"><span class="q">${r.o[0]}</span><span class="n">${hl(r.o[1],q)}</span></span>`;
+      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${outHtml}</div></div>`;
+    }
+    html+="</div></div>";
+  }
+  out.innerHTML=html;
+}
+
+document.getElementById("rfilter").addEventListener("click",e=>{
+  const b=e.target.closest(".seg"); if(!b)return;
+  rf=b.dataset.r;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute("aria-pressed",c===b));
+  render();
+});
+document.getElementById("multToggle").addEventListener("click",e=>{
+  multOnly=!multOnly; e.currentTarget.setAttribute("aria-pressed",multOnly); render();
+});
+qEl.addEventListener("input",render);
+render();
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
