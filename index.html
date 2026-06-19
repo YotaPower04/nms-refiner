@@ -84,6 +84,7 @@
   .ico{width:20px;height:20px;object-fit:contain;flex:0 0 auto;border-radius:3px}
   .out .n{color:var(--teal)}
   .out .q{color:var(--teal)}
+  .eff{font-size:10.5px;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.35}
   .plus{color:var(--muted);font-weight:700;opacity:.6;font-size:12px}
   .arrow{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--teal);min-width:54px}
   .arrow svg{width:30px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
@@ -121,11 +122,11 @@
       </div>
       <div class="segs" id="rfilter">
         <div class="seg" data-r="all" aria-pressed="true">All</div>
-        <div class="seg" data-r="P" aria-pressed="false">Portable</div>
-        <div class="seg" data-r="M" aria-pressed="false">Medium</div>
-        <div class="seg" data-r="L" aria-pressed="false">Large</div>
-        <div class="seg" data-r="C" aria-pressed="false">Craft</div>
-        <div class="seg" data-r="N" aria-pressed="false">Cook</div>
+        <div class="seg" data-r="P" aria-pressed="false">Portable Refiner</div>
+        <div class="seg" data-r="M" aria-pressed="false">Medium Refiner</div>
+        <div class="seg" data-r="L" aria-pressed="false">Large Refiner</div>
+        <div class="seg" data-r="C" aria-pressed="false">Hand-Made</div>
+        <div class="seg" data-r="N" aria-pressed="false">Nutrient Processor</div>
       </div>
       <div class="seg amber" id="multToggle" aria-pressed="false">&#x27F3; Multipliers</div>
     </div>
@@ -458,7 +459,7 @@ const DATA = [
 ];
 
 // group label per recipe kind: P/M/L refiner, C inventory craft, N nutrient processor
-const GLABEL={P:"Portable Refiner",M:"Medium Refiner",L:"Large Refiner",C:"Inventory Crafting",N:"Nutrient Processor"};
+const GLABEL={P:"Portable Refiner",M:"Medium Refiner",L:"Large Refiner",C:"Hand-Made",N:"Nutrient Processor"};
 
 // dedupe + flag multipliers (output material is also an input AND output qty exceeds that input qty)
 const seen=new Set();
@@ -536,7 +537,8 @@ function render(){
     for(const r of sub){
       const ins=r.i.map((x,idx)=>(idx?'<span class="plus">+</span>':'')+ing(x[1],x[0],q,false)).join("");
       const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
-      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],q,true)}</div></div>`;
+      const eff=r.e?`<div class="eff">${esc(r.e)}</div>`:"";
+      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],q,true)}${eff}</div></div>`;
     }
     html+="</div></div>";
   }
