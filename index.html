@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NMS Refiner Cheat Sheet</title>
+<title>NMS Recipe Book</title>
 <meta name="theme-color" content="#070b11">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NMS Refiner">
+<meta name="apple-mobile-web-app-title" content="NMS Recipe Book">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -78,7 +78,9 @@
   .outs{justify-content:flex-start}
   .ing{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px}
   .ing .q{font-weight:700;color:var(--muted);font-size:11.5px;min-width:fit-content}
-  .ing .n{color:var(--text)}
+  .ing .n{color:var(--text);cursor:pointer}
+  .ing .n:hover{text-decoration:underline;text-decoration-color:var(--teal)}
+  .sym{font-family:var(--mono);font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 3px;line-height:1.5}
   .ico{width:20px;height:20px;object-fit:contain;flex:0 0 auto;border-radius:3px}
   .out .n{color:var(--teal)}
   .out .q{color:var(--teal)}
@@ -109,9 +111,9 @@
 <body>
 <header>
   <div class="wrap">
-    <div class="eyebrow">Refiner Database &middot; Field Reference</div>
-    <h1>Every Refining <span class="glow">Combination</span></h1>
-    <p class="sub">Search by any input or output material. Filter by refiner size. Flip on <b style="color:var(--amber)">Multipliers</b> to isolate every self-feeding dupe loop &mdash; recipes that return more of a material than they consume.</p>
+    <div class="eyebrow">Recipe Book &middot; Field Reference</div>
+    <h1>NMS <span class="glow">Recipe Book</span></h1>
+    <p class="sub">Search any material across <b>refining</b>, <b>inventory crafting</b>, and <b>Nutrient Processor</b> recipes. Filter by station, or flip on <b style="color:var(--amber)">Multipliers</b> to isolate self-feeding refiner dupe loops. Tap any material name to see everything that uses it.</p>
     <div class="controls">
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -122,6 +124,8 @@
         <div class="seg" data-r="P" aria-pressed="false">Portable</div>
         <div class="seg" data-r="M" aria-pressed="false">Medium</div>
         <div class="seg" data-r="L" aria-pressed="false">Large</div>
+        <div class="seg" data-r="C" aria-pressed="false">Craft</div>
+        <div class="seg" data-r="N" aria-pressed="false">Cook</div>
       </div>
       <div class="seg amber" id="multToggle" aria-pressed="false">&#x27F3; Multipliers</div>
     </div>
@@ -133,9 +137,10 @@
 
 <footer class="wrap">
   Source: community-datamined refiner tables (Interceptor build, cross-checked against current wiki recipe pages). <b>Recipe yields are retuned by Hello Games from time to time</b> &mdash; treat exact ratios as a strong guide and confirm anything you're scaling a farm around in your live game. Precious-metal inputs in alloy recipes are interchangeable at different efficiencies: Platinum &gt; Gold &gt; Silver &gt; Tritium. Two- and three-input recipes need a Medium or Large refiner respectively.
-  <br><br>Material icons &amp; symbols via the <b>Assistant for No Man's Sky</b> community project. No Man's Sky is a trademark of Hello Games; this is an unofficial fan reference, not affiliated with or endorsed by Hello Games.
+  <br><br>Material icons, symbols, and crafting / Nutrient Processor recipes via the <b>Assistant for No Man's Sky</b> community project. No Man's Sky is a trademark of Hello Games; this is an unofficial fan reference, not affiliated with or endorsed by Hello Games.
 </footer>
 
+<script src="recipes-extra.js"></script>
 <script>
 // r: refiner (P portable / M medium / L large). i: inputs [[qty,name]]. o: output [qty,name]
 const DATA = [
@@ -452,12 +457,13 @@ const DATA = [
 {r:"L",i:[[1,"Aronium"],[1,"Magno-Gold"],[1,"Grantine"]],o:[1,"Iridesite"]}
 ];
 
-const RNAME={P:"Portable",M:"Medium",L:"Large"};
+// group label per recipe kind: P/M/L refiner, C inventory craft, N nutrient processor
+const GLABEL={P:"Portable Refiner",M:"Medium Refiner",L:"Large Refiner",C:"Inventory Crafting",N:"Nutrient Processor"};
 
 // dedupe + flag multipliers (output material is also an input AND output qty exceeds that input qty)
 const seen=new Set();
 const recipes=[];
-for(const r of DATA){
+for(const r of DATA.concat(CRAFT,COOK)){
   const sig=r.r+"|"+r.i.map(x=>x[0]+x[1]).sort().join(",")+"|"+r.o[0]+r.o[1];
   if(seen.has(sig))continue; seen.add(sig);
   const match=r.i.find(x=>x[1]===r.o[1]);
@@ -465,9 +471,7 @@ for(const r of DATA){
   recipes.push(r);
 }
 
-// Material icons (bundled local PNGs) + in-game periodic symbols (source: AssistantNMS / Hello Games)
-const ICON={"Activated Cadmium":"activated-cadmium.png","Activated Copper":"activated-copper.png","Activated Emeril":"activated-emeril.png","Activated Indium":"activated-indium.png","Ammonia":"ammonia.png","Aronium":"aronium.png","Atlantideum":"atlantideum.png","Cactus Flesh":"cactus-flesh.png","Cadmium":"cadmium.png","Carbon":"carbon.png","Chlorine":"chlorine.png","Chromatic Metal":"chromatic-metal.png","Cobalt":"cobalt.png","Condensed Carbon":"condensed-carbon.png","Copper":"copper.png","Crystal Sulphide":"crystal-sulphide.png","Cyto-Phosphate":"cyto-phosphate.png","Deuterium":"deuterium.png","Di-hydrogen":"di-hydrogen.png","Di-hydrogen Jelly":"di-hydrogen-jelly.png","Dioxite":"dioxite.png","Dirty Bronze":"dirty-bronze.png","Emeril":"emeril.png","Enriched Carbon":"enriched-carbon.png","Faecium":"faecium.png","Ferrite Dust":"ferrite-dust.png","Frost Crystal":"frost-crystal.png","Fungal Mould":"fungal-mould.png","Gamma Root":"gamma-root.png","Geodesite":"geodesite.png","Glass":"glass.png","Gold":"gold.png","Grantine":"grantine.png","Hadal Core":"hadal-core.png","Herox":"herox.png","Hexite":"hexite.png","Hypnotic Eye":"hypnotic-eye.png","Indium":"indium.png","Inverted Mirror":"inverted-mirror.png","Ion Battery":"ion-battery.png","Ionised Cobalt":"ionised-cobalt.png","Iridesite":"iridesite.png","Kelp Sac":"kelp-sac.png","Larval Core":"larval-core.png","Lemmium":"lemmium.png","Life Support Gel":"life-support-gel.png","Living Pearl":"living-pearl.png","Living Slime":"living-slime.png","Magnetised Ferrite":"magnetised-ferrite.png","Magno-Gold":"magno-gold.png","Marrow Bulb":"marrow-bulb.png","Mordite":"mordite.png","Nanite Cluster":"nanite-cluster.png","Nitrogen":"nitrogen.png","Nitrogen Salt":"nitrogen-salt.png","Oxygen":"oxygen.png","Paraffinium":"paraffinium.png","Phosphorus":"phosphorus.png","Platinum":"platinum.png","Pugneum":"pugneum.png","Pure Ferrite":"pure-ferrite.png","Pyrite":"pyrite.png","Radiant Shard":"radiant-shard.png","Radon":"radon.png","Rare Metal Element":"rare-metal-element.png","Residual Goop":"residual-goop.png","Runaway Mould":"runaway-mould.png","Rusted Metal":"rusted-metal.png","Salt":"salt.png","Silicate Powder":"silicate-powder.png","Silver":"silver.png","Sodium":"sodium.png","Sodium Nitrate":"sodium-nitrate.png","Solanium":"solanium.png","Star Bulb":"star-bulb.png","Starship Launch Fuel":"starship-launch-fuel.png","Sulphurine":"sulphurine.png","Tainted Metal":"tainted-metal.png","Thermic Condensate":"thermic-condensate.png","Tritium":"tritium.png","Unstable Plasma":"unstable-plasma.png","Uranium":"uranium.png","Viscous Fluids":"viscous-fluids.png","Warp Cell":"warp-cell.png"};
-const SYM={"Carbon":"C","Condensed Carbon":"C+","Oxygen":"O2","Hexite":"X","Di-hydrogen":"H","Deuterium":"D","Tritium":"H3","Ferrite Dust":"Fe","Pure Ferrite":"Fe+","Magnetised Ferrite":"Fe++","Silicate Powder":"Si","Sodium":"Na","Sodium Nitrate":"Na+","Cobalt":"Co","Ionised Cobalt":"Co+","Salt":"NaCl","Chlorine":"Cl","Cyto-Phosphate":"Cy","Copper":"Cu","Cadmium":"Cd","Emeril":"Em","Indium":"In","Chromatic Metal":"Ch","Paraffinium":"Pf","Pyrite":"Py","Ammonia":"NH3","Uranium":"U","Dioxite":"CO2","Phosphorus":"P","Mordite":"Mo","Pugneum":"Pg","Silver":"Ag","Gold":"Au","Platinum":"Pt","Sulphurine":"Su","Radon":"Rn","Nitrogen":"N","Activated Copper":"Cu","Activated Cadmium":"Cd","Activated Emeril":"Em","Activated Indium":"In","Fungal Mould":"Ml","Frost Crystal":"Fc","Gamma Root":"Gr","Cactus Flesh":"Cc","Solanium":"So","Star Bulb":"Sb","Marrow Bulb":"Bu","Kelp Sac":"Ke","Faecium":"Fa","Residual Goop":"Jn","Runaway Mould":"Jn","Rusted Metal":"Jn","Living Slime":"Jn","Viscous Fluids":"Jn","Nanite Cluster":"∞","Tainted Metal":"Un","Atlantideum":"∞"};
+// ICON (name->png) + SYM (name->symbol) are provided by recipes-extra.js (generated).
 function icon(n){const f=ICON[n];return f?'<img class="ico" src="icons/'+f+'" alt="" loading="lazy">':'';}
 
 const out=document.getElementById("out");
@@ -487,6 +491,14 @@ function hl(name,q){
   return esc(name.slice(0,i))+'<span class="hl">'+esc(name.slice(i,i+q.length))+'</span>'+esc(name.slice(i+q.length));
 }
 const arrowSVG='<svg viewBox="0 0 30 12"><path d="M0 6h26m-5-4 5 4-5 4"/></svg>';
+const CAP=500; // with no search active, cap rows so the full ~1600-recipe list stays snappy
+
+function symHtml(n){return SYM[n]?`<span class="sym">${esc(SYM[n])}</span>`:"";}
+// one ingredient chip: icon + qty + clickable name + in-game symbol
+function ing(name,qty,q,isOut){
+  return `<span class="ing${isOut?" out":""}">${icon(name)}<span class="q">${qty}</span>`+
+         `<span class="n" data-name="${esc(name)}">${hl(name,q)}</span>${symHtml(name)}</span>`;
+}
 
 function render(){
   const q=qEl.value.trim().toLowerCase();
@@ -503,27 +515,28 @@ function render(){
     return true;
   });
 
-  countEl.innerHTML=`<b>${list.length}</b> recipe${list.length===1?"":"s"}${multOnly?" &middot; multiplier loops":""}${q?` matching “${esc(q)}”`:""}`;
+  const total=list.length;
+  const capped=!q&&total>CAP;
+  countEl.innerHTML=`<b>${total}</b> recipe${total===1?"":"s"}${multOnly?" &middot; multiplier loops":""}${q?` matching “${esc(q)}”`:""}${capped?` &middot; showing first ${CAP}, search to narrow`:""}`;
 
-  if(!list.length){
-    out.innerHTML='<div class="empty"><b>No matches.</b><br>Try a material name like cobalt, platinum, or chromatic metal.</div>';
+  if(!total){
+    out.innerHTML='<div class="empty"><b>No matches.</b><br>Try a material name like cobalt, glass, or chromatic metal.</div>';
     return;
   }
 
-  const order=["P","M","L"];
-  let html="";
+  const order=["P","M","L","C","N"];
+  let html="", shown=0;
   for(const key of order){
-    const sub=list.filter(r=>r.r===key);
+    if(capped&&shown>=CAP)break;
+    let sub=list.filter(r=>r.r===key);
     if(!sub.length)continue;
-    html+=`<div class="group"><div class="grouphd"><span>${RNAME[key]}</span> Refiner &middot; ${sub.length}</div><div class="rows">`;
+    if(capped)sub=sub.slice(0,Math.max(0,CAP-shown));
+    shown+=sub.length;
+    html+=`<div class="group"><div class="grouphd"><span>${GLABEL[key]}</span> &middot; ${sub.length}</div><div class="rows">`;
     for(const r of sub){
-      const ins=r.i.map((x,idx)=>
-        (idx?'<span class="plus">+</span>':'')+
-        `<span class="ing">${icon(x[1])}<span class="q">${x[0]}</span><span class="n">${hl(x[1],q)}</span></span>`
-      ).join("");
+      const ins=r.i.map((x,idx)=>(idx?'<span class="plus">+</span>':'')+ing(x[1],x[0],q,false)).join("");
       const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
-      const outHtml=`<span class="ing out">${icon(r.o[1])}<span class="q">${r.o[0]}</span><span class="n">${hl(r.o[1],q)}</span></span>`;
-      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${outHtml}</div></div>`;
+      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],q,true)}</div></div>`;
     }
     html+="</div></div>";
   }
@@ -538,6 +551,13 @@ document.getElementById("rfilter").addEventListener("click",e=>{
 });
 document.getElementById("multToggle").addEventListener("click",e=>{
   multOnly=!multOnly; e.currentTarget.setAttribute("aria-pressed",multOnly); render();
+});
+// click a material name -> show every recipe (refine/craft/cook) using it
+out.addEventListener("click",e=>{
+  const t=e.target.closest(".n[data-name]"); if(!t)return;
+  qEl.value=t.dataset.name; rf="all";
+  [...document.getElementById("rfilter").children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.r==="all"));
+  render(); window.scrollTo(0,0);
 });
 qEl.addEventListener("input",render);
 render();
@@ -561,35 +581,44 @@ render();
     return false;
   }
 
-  function banner(version, url){
+  function banner(version, url, notes){
     const bar=document.createElement("div");
-    bar.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e141d;border-top:1px solid #2ee6d6;color:#e6f1ff;font-family:inherit;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 -4px 18px rgba(0,0,0,.5)";
+    bar.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e141d;border-top:1px solid #2ee6d6;color:#e6f1ff;font-family:inherit;padding:12px 14px;box-shadow:0 -4px 18px rgba(0,0,0,.5);max-height:62vh;display:flex;flex-direction:column;gap:8px";
+    const head=document.createElement("div");
+    head.style.cssText="display:flex;align-items:center;gap:10px";
     const txt=document.createElement("div");
-    txt.style.cssText="flex:1;font-size:14px";
+    txt.style.cssText="flex:1;font-size:14px;font-weight:700";
     txt.textContent="Update available — v"+version;
-    const btn=document.createElement("button");
-    btn.textContent="Update";
-    btn.style.cssText="background:#2ee6d6;color:#04211f;border:0;border-radius:6px;padding:8px 14px;font-weight:700;font-family:inherit";
     const close=document.createElement("button");
     close.textContent="✕"; close.setAttribute("aria-label","Dismiss");
-    close.style.cssText="background:transparent;color:#77ddaa;border:0;font-size:16px;padding:6px";
+    close.style.cssText="background:transparent;color:#77ddaa;border:0;font-size:16px;padding:4px 6px";
     close.onclick=()=>bar.remove();
+    head.appendChild(txt); head.appendChild(close);
+    // changelog from the GitHub release notes (light markdown -> text)
+    const log=document.createElement("div");
+    log.style.cssText="font-size:12.5px;line-height:1.5;color:#b9c7d6;white-space:pre-wrap;overflow:auto;max-height:34vh;border:1px solid #1d2836;border-radius:6px;padding:8px 10px;background:#0a0f16";
+    log.textContent=(notes||"What's new in this version.").replace(/\*\*/g,"").replace(/`/g,"").replace(/^#+\s*/gm,"").replace(/^[-*]\s+/gm,"• ").trim();
+    const status=document.createElement("div");
+    status.style.cssText="font-size:12px;color:#77ddaa";
+    const btn=document.createElement("button");
+    btn.textContent="Update now";
+    btn.style.cssText="background:#2ee6d6;color:#04211f;border:0;border-radius:6px;padding:10px 14px;font-weight:700;font-family:inherit;align-self:flex-start";
     btn.onclick=async()=>{
       try{
         const can=await Updater.canInstall();
         if(!can.allowed){
-          txt.textContent="Allow “install unknown apps”, then tap Update again.";
+          status.textContent="Allow “install unknown apps”, then tap Update again.";
           await Updater.openInstallSettings();
           return;
         }
-        btn.disabled=true; txt.textContent="Downloading v"+version+"…";
+        btn.disabled=true; status.textContent="Downloading v"+version+"…";
         await Updater.downloadAndInstall({url:url});
-        txt.textContent="Opening installer…";
+        status.textContent="Opening installer…";
       }catch(e){
-        btn.disabled=false; txt.textContent="Update failed: "+((e&&e.message)||e);
+        btn.disabled=false; status.textContent="Update failed: "+((e&&e.message)||e);
       }
     };
-    bar.appendChild(txt); bar.appendChild(btn); bar.appendChild(close);
+    bar.appendChild(head); bar.appendChild(log); bar.appendChild(status); bar.appendChild(btn);
     document.body.appendChild(bar);
   }
 
@@ -604,7 +633,7 @@ render();
       if(!latest || !isNewer(latest,current)) return;
       const asset=(rel.assets||[]).find(a=>/\.apk$/i.test(a.name));
       if(!asset) return;
-      banner(latest, asset.browser_download_url);
+      banner(latest, asset.browser_download_url, rel.body);
     }catch(e){ /* offline or API error: ignore silently */ }
   }
   setTimeout(check, 2500);

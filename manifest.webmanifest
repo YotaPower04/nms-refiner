@@ -1,7 +1,7 @@
 {
-  "name": "NMS Refiner Cheat Sheet",
-  "short_name": "NMS Refiner",
-  "description": "Searchable No Man's Sky refining recipe reference with multiplier-loop flags. Works offline.",
+  "name": "NMS Recipe Book",
+  "short_name": "Recipe Book",
+  "description": "Searchable No Man's Sky recipe reference — refining, crafting, and Nutrient Processor. Works offline.",
   "start_url": "index.html",
   "scope": ".",
   "display": "standalone",
