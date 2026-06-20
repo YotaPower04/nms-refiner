@@ -85,6 +85,7 @@
   .out .n{color:var(--teal)}
   .out .q{color:var(--teal)}
   .eff{font-size:10.5px;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.35}
+  .val{font-size:10.5px;color:var(--amber);margin-top:3px;font-family:var(--mono);opacity:.85}
   .plus{color:var(--muted);font-weight:700;opacity:.6;font-size:12px}
   .arrow{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--teal);min-width:54px}
   .arrow svg{width:30px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
@@ -495,6 +496,8 @@ const arrowSVG='<svg viewBox="0 0 30 12"><path d="M0 6h26m-5-4 5 4-5 4"/></svg>'
 const CAP=500; // with no search active, cap rows so the full ~1600-recipe list stays snappy
 
 function symHtml(n){return SYM[n]?`<span class="sym">${esc(SYM[n])}</span>`:"";}
+// sell value of an output: "1,234 u" (units / Credits) or "… Nanites/Quicksilver"
+function valHtml(n){const v=VAL[n];return v?`<div class="val">${v.toLocaleString()} ${CURX[n]||"u"}</div>`:"";}
 // one ingredient chip: icon + qty + clickable name + in-game symbol
 function ing(name,qty,q,isOut){
   return `<span class="ing${isOut?" out":""}">${icon(name)}<span class="q">${qty}</span>`+
@@ -538,7 +541,7 @@ function render(){
       const ins=r.i.map((x,idx)=>(idx?'<span class="plus">+</span>':'')+ing(x[1],x[0],q,false)).join("");
       const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
       const eff=r.e?`<div class="eff">${esc(r.e)}</div>`:"";
-      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],q,true)}${eff}</div></div>`;
+      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],q,true)}${valHtml(r.o[1])}${eff}</div></div>`;
     }
     html+="</div></div>";
   }

@@ -1,4 +1,4 @@
-const CACHE = "nms-refiner-v4";
+const CACHE = "nms-refiner-v5";
 const ASSETS = [
   "index.html",
   "manifest.webmanifest",
