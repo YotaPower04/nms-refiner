@@ -92,6 +92,21 @@
   .ival .val{margin-top:0;white-space:nowrap}
   .val.dim{color:var(--muted);opacity:.45}
   .src{grid-column:1/-1;font-size:10.5px;color:var(--muted);line-height:1.4;white-space:normal;margin-top:2px}
+  .detail{padding-top:2px}
+  .dbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 8px}
+  .backbtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 13px;font-family:var(--display);font-size:13px;cursor:pointer}
+  .backbtn:hover{border-color:#2d3c4f}
+  .dfull{font-size:12px;white-space:nowrap}
+  .dhead{display:flex;gap:16px;align-items:center;margin:4px 0 2px}
+  .dico{width:64px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:var(--panel);flex:0 0 auto}
+  .dname{font-size:27px;margin:0;font-weight:700;line-height:1.1}
+  .detail .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .dchip{font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+  .dchip.amber{color:var(--amber);font-family:var(--mono)}
+  .dsrc{color:var(--muted);font-size:13.5px;margin:12px 0 2px;max-width:64ch}
+  .dsrc b{color:var(--text)}
+  .dsec{font-family:var(--display);text-transform:uppercase;letter-spacing:.2em;font-size:11px;color:var(--amber);margin:22px 0 9px}
+  .empty.small{padding:14px 4px;font-size:13px;text-align:left}
   .plus{color:var(--muted);font-weight:700;opacity:.6;font-size:12px}
   .arrow{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--teal);min-width:54px}
   .arrow svg{width:30px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
@@ -121,15 +136,11 @@
   <div class="wrap">
     <div class="eyebrow">Recipe Book &middot; Field Reference</div>
     <h1>NMS <span class="glow">Recipe Book</span></h1>
-    <p class="sub">Search any material across <b>refining</b>, <b>inventory crafting</b>, and <b>Nutrient Processor</b> recipes. Filter by station, or flip on <b style="color:var(--amber)">Multipliers</b> to isolate self-feeding refiner dupe loops. Tap any material name to see everything that uses it.</p>
+    <p class="sub">Search everything at once — <b>refining</b>, <b>inventory crafting</b>, <b>Nutrient Processor</b> recipes and the <b>items</b> index. Filter by station or items, flip on <b style="color:var(--amber)">Multipliers</b> for self-feeding refiner loops, and tap any name for its full detail page.</p>
     <div class="controls">
-      <div class="segs" id="viewtoggle">
-        <div class="seg" data-v="recipes" aria-pressed="true">Recipes</div>
-        <div class="seg" data-v="items" aria-pressed="false">Items</div>
-      </div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="text" placeholder="Search material… (e.g. cobalt, chromatic, platinum)" autocomplete="off" spellcheck="false">
+        <input id="q" type="text" placeholder="Search materials, recipes &amp; items… (e.g. cobalt, fe++, glass)" autocomplete="off" spellcheck="false">
       </div>
       <div class="segs" id="rfilter">
         <div class="seg" data-r="all" aria-pressed="true">All</div>
@@ -138,18 +149,9 @@
         <div class="seg" data-r="L" aria-pressed="false">Large Refiner</div>
         <div class="seg" data-r="C" aria-pressed="false">Hand-Made</div>
         <div class="seg" data-r="N" aria-pressed="false">Nutrient Processor</div>
+        <div class="seg" data-r="items" aria-pressed="false">Items</div>
       </div>
       <div class="seg amber" id="multToggle" aria-pressed="false">&#x27F3; Multipliers</div>
-      <div class="segs" id="ifilter" hidden>
-        <div class="seg" data-c="all" aria-pressed="true">All</div>
-        <div class="seg" data-c="Raw Material" aria-pressed="false">Raw Materials</div>
-        <div class="seg" data-c="Cooking Ingredient" aria-pressed="false">Cooking</div>
-        <div class="seg" data-c="Trade Commodity" aria-pressed="false">Trade Goods</div>
-        <div class="seg" data-c="Fish" aria-pressed="false">Fish</div>
-        <div class="seg" data-c="Curiosity" aria-pressed="false">Curiosities</div>
-        <div class="seg" data-c="Ship Part" aria-pressed="false">Ship Parts</div>
-        <div class="seg" data-c="Salvage" aria-pressed="false">Salvage</div>
-      </div>
     </div>
     <div class="count" id="count"></div>
   </div>
@@ -499,7 +501,7 @@ function icon(n){const f=ICON[n];return f?'<img class="ico" src="icons/'+f+'" al
 const out=document.getElementById("out");
 const qEl=document.getElementById("q");
 const countEl=document.getElementById("count");
-let rf="all", multOnly=false, viewMode="recipes", icat="all";
+let rf="all", multOnly=false, viewMode="list", icat="all", detailName=null;
 
 function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 // auto abbreviation = initials of each word (split on spaces and hyphens), e.g.
@@ -524,75 +526,37 @@ function ing(name,qty,q,isOut){
          `<span class="n" data-name="${esc(name)}">${hl(name,q)}</span>${symHtml(name)}</span>`;
 }
 
-function render(){ viewMode==="items" ? renderItems() : renderRecipes(); }
+function render(){ viewMode==="detail" ? renderDetail(detailName) : renderList(); }
 
-// Items index: order + which categories exist
+// item category order for grouping the Items section
 const ICATS=["Raw Material","Cooking Ingredient","Trade Commodity","Fish","Curiosity","Ship Part","Salvage"];
-function renderItems(){
-  const q=qEl.value.trim().toLowerCase();
-  let list=ITEMS.filter(it=>{
-    if(icat!=="all"&&it.cat!==icat)return false;
-    if(q){
-      const nm=it.n.toLowerCase();
-      if(!nm.includes(q)&&abbr(it.n)!==q&&!(SYM[it.n]&&SYM[it.n].toLowerCase()===q))return false;
-    }
-    return true;
-  });
-  const total=list.length, capped=!q&&total>CAP;
-  countEl.innerHTML=`<b>${total}</b> item${total===1?"":"s"}${icat!=="all"?` &middot; ${esc(icat)}`:""}${q?` matching “${esc(q)}”`:""}${capped?` &middot; showing first ${CAP}, search to narrow`:""}`;
-  if(!total){ out.innerHTML='<div class="empty"><b>No matches.</b><br>Try an item like cobalt, salt, or a fish name.</div>'; return; }
-  let html="", shown=0;
-  for(const key of ICATS){
-    if(capped&&shown>=CAP)break;
-    let sub=list.filter(it=>it.cat===key);
-    if(!sub.length)continue;
-    if(capped)sub=sub.slice(0,Math.max(0,CAP-shown));
-    shown+=sub.length;
-    html+=`<div class="group"><div class="grouphd"><span>${esc(key)}</span> &middot; ${sub.length}</div><div class="rows">`;
-    for(const it of sub){
-      const n=it.n;
-      const meta=[it.g,it.s].filter(Boolean).map(esc).join(" &middot; ");
-      html+=`<div class="row irow"><div class="ins">${icon(n)}<span class="ing"><span class="n" data-name="${esc(n)}">${hl(n,q)}</span>${symHtml(n)}</span></div>`+
-            `<div class="ival">${valHtml(n)||'<div class="val dim">—</div>'}</div>`+
-            `<div class="src">${meta}</div></div>`;
-    }
-    html+="</div></div>";
-  }
-  out.innerHTML=html;
+function matchRecipe(r,q){
+  if(!q)return true;
+  const mats=r.i.map(x=>x[1]).concat(r.o[1]);
+  if(mats.join(" ").toLowerCase().includes(q))return true;
+  return mats.some(m=>(SYM[m]&&SYM[m].toLowerCase()===q)||abbr(m)===q);
 }
-
-function renderRecipes(){
+function matchItem(it,q){
+  if(!q)return true;
+  return it.n.toLowerCase().includes(q)||abbr(it.n)===q||(SYM[it.n]&&SYM[it.n].toLowerCase()===q);
+}
+// unified list: recipes (by station) + items, all searched together
+function renderList(){
   const q=qEl.value.trim().toLowerCase();
-  let list=recipes.filter(r=>{
-    if(rf!=="all"&&r.r!==rf)return false;
-    if(multOnly&&!r.mult)return false;
-    if(q){
-      const mats=r.i.map(x=>x[1]).concat(r.o[1]);
-      const hay=mats.join(" ").toLowerCase();
-      // match by name substring, exact in-game symbol (e.g. "fe++","co2"), or auto-initials ("dhj")
-      const symHit=mats.some(m=>(SYM[m]&&SYM[m].toLowerCase()===q)||abbr(m)===q);
-      if(!hay.includes(q)&&!symHit)return false;
-    }
-    return true;
-  });
-
-  const total=list.length;
-  const capped=!q&&total>CAP;
-  countEl.innerHTML=`<b>${total}</b> recipe${total===1?"":"s"}${multOnly?" &middot; multiplier loops":""}${q?` matching “${esc(q)}”`:""}${capped?` &middot; showing first ${CAP}, search to narrow`:""}`;
-
-  if(!total){
-    out.innerHTML='<div class="empty"><b>No matches.</b><br>Try a material name like cobalt, glass, or chromatic metal.</div>';
-    return;
-  }
-
-  const order=["P","M","L","C","N"];
+  const wantRecipes=rf!=="items", wantItems=rf==="all"||rf==="items";
+  const rlist=wantRecipes?recipes.filter(r=>(rf==="all"||r.r===rf)&&(!multOnly||r.mult)&&matchRecipe(r,q)):[];
+  const ilist=wantItems?ITEMS.filter(it=>(icat==="all"||it.cat===icat)&&matchItem(it,q)):[];
+  const capped=!q&&(rlist.length+ilist.length)>CAP;
+  const parts=[];
+  if(wantRecipes)parts.push(`<b>${rlist.length}</b> recipe${rlist.length===1?"":"s"}`);
+  if(wantItems)parts.push(`<b>${ilist.length}</b> item${ilist.length===1?"":"s"}`);
+  countEl.innerHTML=parts.join(" &middot; ")+(multOnly?" &middot; multiplier loops":"")+(icat!=="all"?` &middot; ${esc(icat)}`:"")+(q?` matching “${esc(q)}”`:"")+(capped?` &middot; showing first ${CAP}, search to narrow`:"");
+  if(!rlist.length&&!ilist.length){ out.innerHTML='<div class="empty"><b>No matches.</b><br>Try cobalt, glass, fe++, or a fish name.</div>'; return; }
   let html="", shown=0;
-  for(const key of order){
+  for(const key of ["P","M","L","C","N"]){
     if(capped&&shown>=CAP)break;
-    let sub=list.filter(r=>r.r===key);
-    if(!sub.length)continue;
-    if(capped)sub=sub.slice(0,Math.max(0,CAP-shown));
-    shown+=sub.length;
+    let sub=rlist.filter(r=>r.r===key); if(!sub.length)continue;
+    if(capped)sub=sub.slice(0,Math.max(0,CAP-shown)); shown+=sub.length;
     html+=`<div class="group"><div class="grouphd"><span>${GLABEL[key]}</span> &middot; ${sub.length}</div><div class="rows">`;
     for(const r of sub){
       const ins=r.i.map((x,idx)=>(idx?'<span class="plus">+</span>':'')+ing(x[1],x[0],q,false)).join("");
@@ -602,48 +566,104 @@ function renderRecipes(){
     }
     html+="</div></div>";
   }
+  for(const key of ICATS){
+    if(capped&&shown>=CAP)break;
+    let sub=ilist.filter(it=>it.cat===key); if(!sub.length)continue;
+    if(capped)sub=sub.slice(0,Math.max(0,CAP-shown)); shown+=sub.length;
+    html+=`<div class="group"><div class="grouphd"><span>${esc(key)}</span> &middot; ${sub.length}</div><div class="rows">`;
+    for(const it of sub){
+      const n=it.n, meta=[it.g,it.s].filter(Boolean).map(esc).join(" &middot; ");
+      html+=`<div class="row irow"><div class="ins">${icon(n)}<span class="ing"><span class="n" data-name="${esc(n)}">${hl(n,q)}</span>${symHtml(n)}</span></div>`+
+            `<div class="ival">${valHtml(n)||'<div class="val dim">—</div>'}</div><div class="src">${meta}</div></div>`;
+    }
+    html+="</div></div>";
+  }
   out.innerHTML=html;
 }
 
-document.getElementById("rfilter").addEventListener("click",e=>{
-  const b=e.target.closest(".seg"); if(!b)return;
-  rf=b.dataset.r;
-  [...e.currentTarget.children].forEach(c=>c.setAttribute("aria-pressed",c===b));
-  render();
-});
-document.getElementById("multToggle").addEventListener("click",e=>{
-  multOnly=!multOnly; e.currentTarget.setAttribute("aria-pressed",multOnly); render();
-});
-// item-category filter (items mode)
-document.getElementById("ifilter").addEventListener("click",e=>{
-  const b=e.target.closest(".seg"); if(!b)return;
-  icat=b.dataset.c;
-  [...e.currentTarget.children].forEach(c=>c.setAttribute("aria-pressed",c===b));
-  render();
-});
-// Recipes / Items view toggle: swap which controls show and what render() outputs
-const rfilterEl=document.getElementById("rfilter"), multEl=document.getElementById("multToggle"), ifilterEl=document.getElementById("ifilter");
-function setView(v){
-  viewMode=v;
-  [...document.getElementById("viewtoggle").children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.v===v));
-  const items=v==="items";
-  rfilterEl.hidden=items; multEl.hidden=items; ifilterEl.hidden=!items;
-  qEl.placeholder=items?"Search items… (e.g. cobalt, gamma root, fish)":"Search material… (e.g. cobalt, chromatic, platinum)";
-  render();
+// shared: render a list of recipes grouped by station (used by the detail view)
+function recipeGroups(list){
+  const order=["P","M","L","C","N"]; let html="";
+  for(const key of order){
+    const sub=list.filter(r=>r.r===key); if(!sub.length)continue;
+    html+=`<div class="group"><div class="grouphd"><span>${GLABEL[key]}</span> &middot; ${sub.length}</div><div class="rows">`;
+    for(const r of sub){
+      const ins=r.i.map((x,idx)=>(idx?'<span class="plus">+</span>':'')+ing(x[1],x[0],"",false)).join("");
+      const badge=r.mult?`<span class="badge">&#x27F3; ${r.o[0]}&times;</span>`:"";
+      const eff=r.e?`<div class="eff">${esc(r.e)}</div>`:"";
+      html+=`<div class="row${r.mult?' mult':''}"><div class="ins">${ins}</div><div class="arrow">${arrowSVG}${badge}</div><div class="outs">${ing(r.o[1],r.o[0],"",true)}${valHtml(r.o[1])}${eff}</div></div>`;
+    }
+    html+="</div></div>";
+  }
+  return html;
 }
-document.getElementById("viewtoggle").addEventListener("click",e=>{
-  const b=e.target.closest(".seg"); if(!b)return; setView(b.dataset.v);
+function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
+// per-item detail page: icon, symbol, value, source/effect, "made by" + "used in"
+function renderDetail(name){
+  const made=recipes.filter(r=>r.o[1]===name);
+  const used=recipes.filter(r=>r.i.some(x=>x[1]===name));
+  const it=ITEMS.find(x=>x.n===name);
+  const effRec=made.find(r=>r.e);
+  countEl.innerHTML="";
+  const ic=ICON[name]?`<img class="dico" src="icons/${ICON[name]}" alt="">`:"";
+  const chips=[];
+  if(it&&it.cat)chips.push(`<span class="dchip">${esc(it.cat)}</span>`);
+  if(it&&it.g)chips.push(`<span class="dchip">${esc(it.g)}</span>`);
+  if(VAL[name])chips.push(`<span class="dchip amber">${VAL[name].toLocaleString()} ${CURX[name]||"u"}</span>`);
+  if(effRec)chips.push(`<span class="dchip amber">${esc(effRec.e)}</span>`);
+  const native=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
+  const full=native?"":`<a class="dfull" href="https://nms-recipe-book.com/item/${slug(name)}/" target="_blank" rel="noopener">Full page ↗</a>`;
+  let html=`<div class="detail"><div class="dbar"><button class="backbtn" id="backBtn">&larr; Back</button>${full}</div>`;
+  html+=`<div class="dhead">${ic}<div><h1 class="dname">${esc(name)}${symHtml(name)}</h1><div class="chips">${chips.join("")}</div></div></div>`;
+  if(it&&it.s)html+=`<p class="dsrc"><b>Where to get:</b> ${esc(it.s)}</p>`;
+  html+=`<div class="dsec">Made by &middot; ${made.length}</div>`;
+  html+= made.length?recipeGroups(made):`<div class="empty small">Gathered or found — not produced in a station.</div>`;
+  if(used.length)html+=`<div class="dsec">Used in &middot; ${used.length}</div>`+recipeGroups(used);
+  html+=`</div>`;
+  out.innerHTML=html;
+  const bb=document.getElementById("backBtn"); if(bb)bb.onclick=()=>{ history.length>1?history.back():goList(); };
+}
+
+const rfilterEl=document.getElementById("rfilter"), multEl=document.getElementById("multToggle");
+// one filter row: All / stations / Items. "Items" hides the multiplier toggle.
+rfilterEl.addEventListener("click",e=>{
+  const b=e.target.closest(".seg"); if(!b)return;
+  rf=b.dataset.r; icat="all";
+  [...rfilterEl.children].forEach(c=>c.setAttribute("aria-pressed",c===b));
+  syncControls(); render();
 });
-// click a name -> jump to Recipes view showing every recipe that uses/makes it
-out.addEventListener("click",e=>{
-  const t=e.target.closest(".n[data-name]"); if(!t)return;
-  qEl.value=t.dataset.name; rf="all";
-  [...rfilterEl.children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.r==="all"));
-  if(viewMode!=="recipes"){ setView("recipes"); } else { render(); }
-  window.scrollTo(0,0);
+multEl.addEventListener("click",()=>{ multOnly=!multOnly; multEl.setAttribute("aria-pressed",multOnly); render(); });
+function syncControls(){
+  const detail=viewMode==="detail";
+  rfilterEl.hidden=detail;
+  multEl.hidden=detail||rf==="items";
+  [...rfilterEl.children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.r===rf));
+}
+function goList(){ viewMode="list"; detailName=null; history.replaceState(null,"",location.pathname+location.search); syncControls(); render(); }
+
+// click any material/item name -> open its detail page (hash-routed, Back works)
+function goDetail(name){ location.hash="item="+encodeURIComponent(name); window.scrollTo(0,0); }
+out.addEventListener("click",e=>{ const t=e.target.closest(".n[data-name]"); if(t)goDetail(t.dataset.name); });
+
+// URL routing: #item=<name> -> detail; #cat=<Category> -> Items filtered to it; else the list
+function applyRoute(){
+  const raw=location.hash.replace(/^#/,"");
+  if(raw.indexOf("item=")===0){ detailName=decodeURIComponent(raw.slice(5)); viewMode="detail"; }
+  else{
+    detailName=null; viewMode="list";
+    if(raw.indexOf("cat=")===0){ rf="items"; icat=decodeURIComponent(raw.slice(4))||"all"; }
+  }
+  syncControls(); render(); window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",applyRoute);
+
+qEl.addEventListener("input",()=>{
+  if(viewMode==="detail"){ viewMode="list"; detailName=null; history.replaceState(null,"",location.pathname+location.search); syncControls(); }
+  render();
 });
-qEl.addEventListener("input",render);
-render();
+
+// initial load: honor ?q= (search prefill) then route from the URL hash
+(function(){ const q=new URLSearchParams(location.search).get("q"); if(q)qEl.value=q; applyRoute(); })();
 </script>
 <script>
 /* In-app self-updater (native Android only). Checks GitHub Releases for a newer
